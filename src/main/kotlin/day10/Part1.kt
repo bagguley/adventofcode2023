@@ -25,14 +25,23 @@ object Part1 {
         return Grid(map)
     }
 
+    enum class Direction(x: Int, y: Int, val pipes: List<Char>) {
+        NORTH(0, -1, listOf('|','7','F')),
+        EAST(1, 0, listOf('-','J','7')),
+        SOUTH(0, 1, listOf('|','L','J')),
+        WEST(-1, 0, listOf('-','L','F'));
+
+        private val offset = Pair(x, y)
+
+        fun offset(position: Pair<Int, Int>): Pair<Int, Int> {
+            return offset.first + position.first to offset.second + position.second
+        }
+    }
+
     class Grid(val map: MutableMap<Pair<Int, Int>, Char>) {
         private val scoreMap = mutableMapOf<Pair<Int, Int>, Int>()
         companion object {
-            val NORTH = Pair(0, -1)
-            val EAST = Pair(1, 0)
-            val SOUTH = Pair(0, 1)
-            val WEST = Pair(-1, 0)
-            val SURROUNDS = listOf(NORTH, EAST, SOUTH, WEST)
+            val SURROUNDS = listOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)
         }
 
         fun trace() {
@@ -50,6 +59,7 @@ object Part1 {
         private fun trace(start: Pair<Int, Int>) {
             var count = 1
             var nextNodes = mutableListOf(start)
+            scoreMap[start] = 0
 
             while (nextNodes.isNotEmpty()) {
                 val connectingNodes = mutableListOf<Pair<Int, Int>>()
@@ -65,54 +75,41 @@ object Part1 {
 
         private fun connects(coords: Pair<Int, Int>): List<Pair<Int, Int>> {
             val offsets = SURROUNDS.filter {
-                val c = map[coords.first + it.first to coords.second + it.second]
-                val s = scoreMap[coords.first + it.first to coords.second + it.second]
+                val c = map[it.offset(coords)]
+                val s = scoreMap[it.offset(coords)]
                 c != null && c in "|-7FLJ" && s == null
             }
 
-            return offsets.filter{connects(it, coords)}
-                .map { coords.first + it.first to coords.second + it.second }
+            return offsets.filter{connects(it, coords)}.map { it.offset(coords) }
         }
 
-        private fun connects(offset: Pair<Int, Int>, coords: Pair<Int, Int>) : Boolean {
+        private fun connects(offset: Direction, coords: Pair<Int, Int>) : Boolean {
             val char = map[coords]!!
-            val testChar = map[coords.first + offset.first to coords.second + offset.second]!!
+            val testChar = map[offset.offset(coords)]!!
             return when(char) {
-                'S' -> when(offset) {
-                    NORTH -> listOf('|','7','F')
-                    EAST -> listOf('-','J','7')
-                    SOUTH -> listOf('|','L','J')
-                    WEST -> listOf('-','L','F')
-                    else -> emptyList()
-                }
+                'S' -> offset.pipes
                 '|' -> when(offset) {
-                    NORTH -> listOf('|','7','F')
-                    SOUTH -> listOf('|','L','J')
+                    Direction.NORTH, Direction.SOUTH -> offset.pipes
                     else -> emptyList()
                 }
                 '-' -> when(offset) {
-                    WEST -> listOf('-','L','F')
-                    EAST -> listOf('-','J','7')
+                    Direction.WEST, Direction.EAST -> offset.pipes
                     else -> emptyList()
                 }
                 'L' -> when(offset) {
-                    NORTH -> listOf('|','7','F')
-                    EAST -> listOf('-','J','7')
+                    Direction.NORTH, Direction.EAST -> offset.pipes
                     else -> emptyList()
                 }
                 'J' -> when (offset) {
-                    NORTH -> listOf('|','7','F')
-                    WEST -> listOf('-','L','F')
+                    Direction.NORTH, Direction.WEST -> offset.pipes
                     else -> emptyList()
                 }
                 '7' -> when (offset) {
-                    SOUTH -> listOf('|','L','J')
-                    WEST -> listOf('-','L','F')
+                    Direction.SOUTH, Direction.WEST -> offset.pipes
                     else -> emptyList()
                 }
                 'F' -> when (offset) {
-                    SOUTH -> listOf('|','L','J')
-                    EAST -> listOf('-','J','7')
+                    Direction.SOUTH, Direction.EAST -> offset.pipes
                     else -> emptyList()
                 }
                 else -> emptyList()
