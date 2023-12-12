@@ -12,6 +12,38 @@ SJ.L7
 |F--J
 LJ...""".split("\n")
 
+val testData3 = """...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........""".split("\n")
+
+val testData4 = """.F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...""".split("\n")
+
+val testData5 = """FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L""".split("\n")
+
 val data = """LF-|7F-7.F--7---F7-J-F77.FLF7FF|---J-7-L-J7.F7.-.FF|7|7J7-L7.-F7|.|.F|-F-|7.---777L7-.FF77|77F7.|.FF777FJ.-L-|--7FF.F|-|--|--L.L-|F|-FJ7-JF|
 LL7L77-J-J|L7F|FJLJJLFL--7|F--7--L7L-J.||7FJ.|-|.F7LFLJL7..7JLLJLFJF7|7|FF77-L||J-F|.F77--F.7L-7|7FLJF-FJ-||-|7|LLJF-L7|J.L7.|7..|7||LJL-7L7
 .F|-LJ-|---LJ-J--7---|F|.|L.L|J.LFL.LLJ-7-|LL--JJFF7JL77LJ-|.FF|L7FJ.FJ|F|L-7J||J.|L7LJJ77|F|.L|J-FJF7LLF-7JFLJ|.L-J7-L-7F-7-77FLJFJLJL7--J|
