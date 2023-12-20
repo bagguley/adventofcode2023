@@ -1,15 +1,7 @@
 package day14
 
 fun main() {
-    for (i in 160 .. 224) {
-        if (1_000_000_000 % i == 0) {
-            println("Z " + i)
-        }
-    }
-    //println(Part2.calc(testData))
-
-    println()
-
+    println(Part2.calc(testData))
     println(Part2.calc(data))
 }
 
