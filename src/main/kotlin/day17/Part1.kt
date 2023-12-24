@@ -17,9 +17,9 @@ object Part1 {
         val exit = Point(width - 1, height - 1)
 
         val visited: MutableSet<Pair<Point, Pair<Direction, Int>>> = mutableSetOf()
-        val first = Path(Point(0, 0), EAST, 0, 0, Point(0,0).distanceTo(exit))
+        val first = Node(Point(0, 0), EAST, 0, 0, Point(0,0).distanceTo(exit))
 
-        val pq = PriorityQueue<Path>()
+        val pq = PriorityQueue<Node>()
         pq.add(first)
 
         while (pq.first().location != exit) {
@@ -36,14 +36,6 @@ object Part1 {
 
                 if (!inVisited) {
                     pq.add(next)
-                    /*val inToVisit = pq.find { it.location == next.location && it.direction == next.direction && it.consecutive == next.consecutive }
-
-                    if (inToVisit == null) {
-                        pq.add(next)
-                    } else if (inToVisit.score > next.score) {
-                        pq.remove(inToVisit)
-                        pq.add(next)
-                    }*/
                 }
             }
         }
@@ -51,7 +43,7 @@ object Part1 {
         return pq.first().score
     }
 
-    private fun nextPoints(from: Path, width: Int, height: Int, input: List<List<Int>>): List<Path> {
+    private fun nextPoints(from: Node, width: Int, height: Int, input: List<List<Int>>): List<Node> {
         return validDirections(from)
             .filter {
                 val newLoc = from.location.add(it.first)
@@ -59,12 +51,12 @@ object Part1 {
             }.map {
                 val newLoc = from.location.add(it.first)
                 val newScore = from.score + input[newLoc.y][newLoc.x]
-                Path(newLoc, it.first, it.second,
+                Node(newLoc, it.first, it.second,
                     newScore, newLoc.distanceTo(Point(width - 1, height - 1)) + newScore)
             }
     }
 
-    private fun validDirections(from: Path): List<Pair<Direction, Int>> {
+    private fun validDirections(from: Node): List<Pair<Direction, Int>> {
         return when (from.direction) {
             NORTH -> listOf(NORTH to from.consecutive + 1, EAST to 1, WEST to 1)
             EAST  -> listOf(EAST to from.consecutive + 1, NORTH to 1, SOUTH to 1)
@@ -75,8 +67,8 @@ object Part1 {
         }
     }
 
-    data class Path(val location: Point, val direction: Direction, val consecutive: Int, val score: Int, val distanceToExit: Int): Comparable<Path> {
-        override fun compareTo(other: Path): Int {
+    data class Node(val location: Point, val direction: Direction, val consecutive: Int, val score: Int, val distanceToExit: Int): Comparable<Node> {
+        override fun compareTo(other: Node): Int {
             return (score + distanceToExit).compareTo(other.score + other.distanceToExit)
         }
     }
