@@ -17,31 +17,33 @@ object Part1 {
         val exit = Point(width - 1, height - 1)
 
         val visited: MutableSet<Pair<Point, Pair<Direction, Int>>> = mutableSetOf()
-        val first = Path(listOf(Point(0, 0)), EAST, 0, 0, Point(0,0).distanceTo(exit))
+        val first = Path(Point(0, 0), EAST, 0, 0, Point(0,0).distanceTo(exit))
 
         val pq = PriorityQueue<Path>()
         pq.add(first)
 
-        while (pq.first().location() != exit) {
+        while (pq.first().location != exit) {
             val nextPath = pq.remove()
 
-            visited.add(nextPath.location() to (nextPath.direction to nextPath.consecutive))
+            if (visited.contains(nextPath.location to (nextPath.direction to nextPath.consecutive))) continue
+
+            visited.add(nextPath.location to (nextPath.direction to nextPath.consecutive))
 
             val nextPaths = nextPoints(nextPath, width, height, inputInts)
 
             nextPaths.forEach { next ->
-                val inVisited = visited.contains(next.location() to (next.direction to next.consecutive))
+                val inVisited = visited.contains(next.location to (next.direction to next.consecutive))
 
                 if (!inVisited) {
                     pq.add(next)
-                    val inToVisit = pq.find { it.location() == next.location() && it.direction == next.direction && it.consecutive == next.consecutive }
+                    /*val inToVisit = pq.find { it.location == next.location && it.direction == next.direction && it.consecutive == next.consecutive }
 
                     if (inToVisit == null) {
                         pq.add(next)
                     } else if (inToVisit.score > next.score) {
                         pq.remove(inToVisit)
                         pq.add(next)
-                    }
+                    }*/
                 }
             }
         }
@@ -52,12 +54,12 @@ object Part1 {
     private fun nextPoints(from: Path, width: Int, height: Int, input: List<List<Int>>): List<Path> {
         return validDirections(from)
             .filter {
-                val newLoc = from.location().add(it.first)
-                (newLoc.x in 0 ..< width && newLoc.y in 0 ..< height) && !from.locations.contains(newLoc)
+                val newLoc = from.location.add(it.first)
+                (newLoc.x in 0 ..< width && newLoc.y in 0 ..< height)
             }.map {
-                val newLoc = from.location().add(it.first)
+                val newLoc = from.location.add(it.first)
                 val newScore = from.score + input[newLoc.y][newLoc.x]
-                Path(from.locations + newLoc, it.first, it.second,
+                Path(newLoc, it.first, it.second,
                     newScore, newLoc.distanceTo(Point(width - 1, height - 1)) + newScore)
             }
     }
@@ -73,11 +75,7 @@ object Part1 {
         }
     }
 
-    data class Path(val locations: List<Point>, val direction: Direction, val consecutive: Int, val score: Int, val distanceToExit: Int): Comparable<Path> {
-        fun location(): Point {
-            return locations.last()
-        }
-
+    data class Path(val location: Point, val direction: Direction, val consecutive: Int, val score: Int, val distanceToExit: Int): Comparable<Path> {
         override fun compareTo(other: Path): Int {
             return (score + distanceToExit).compareTo(other.score + other.distanceToExit)
         }
