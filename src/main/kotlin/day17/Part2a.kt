@@ -16,37 +16,25 @@ object Part2a {
         val width = inputInts[0].size
         val height = inputInts.size
         val exit = Point(width - 1, height - 1)
+        val visited: MutableSet<Identity> = mutableSetOf()
+        val crucibles = PriorityQueue<Crucible>()
 
-        val visited: MutableSet<Pair<Point, Pair<Direction, Int>>> = mutableSetOf()
-        val first = Node(Point(0, 0), EAST, 0, 0, Point(0,0).distanceTo(exit))
-        val second = Node(Point(0, 0), SOUTH, 0, 0, Point(0,0).distanceTo(exit))
+        crucibles.add(Crucible(Point(0, 0), EAST, 0, 0, Point(0,0).distanceTo(exit)))
+        crucibles.add(Crucible(Point(0, 0), SOUTH, 0, 0, Point(0,0).distanceTo(exit)))
 
-        val pq = PriorityQueue<Node>()
-        pq.add(first)
-        pq.add(second)
+        while (crucibles.first().location != exit || crucibles.first().consecutive < 4) {
+            val nextPath = crucibles.remove()
 
-        while (pq.first().location != exit || pq.first().consecutive < 4) {
-            val nextPath = pq.remove()
-
-            if (visited.contains(nextPath.location to (nextPath.direction to nextPath.consecutive))) continue
-
-            visited.add(nextPath.location to (nextPath.direction to nextPath.consecutive))
-
-            val nextPaths = nextPoints(nextPath, width, height, inputInts)
-
-            nextPaths.forEach { next ->
-                val inVisited = visited.contains(next.location to (next.direction to next.consecutive))
-
-                if (!inVisited) {
-                    pq.add(next)
-                }
+            if (!visited.contains(nextPath.identity())) {
+                visited.add(nextPath.identity())
+                crucibles.addAll(nextPoints(nextPath, width, height, inputInts))
             }
         }
 
-        return pq.first().score
+        return crucibles.first().score
     }
 
-    private fun nextPoints(from: Node, width: Int, height: Int, input: List<List<Int>>): List<Node> {
+    private fun nextPoints(from: Crucible, width: Int, height: Int, input: List<List<Int>>): List<Crucible> {
         return validDirections(from)
             .filter {
                 val newLoc = from.location.add(it.first)
@@ -54,12 +42,11 @@ object Part2a {
             }.map {
                 val newLoc = from.location.add(it.first)
                 val newScore = from.score + input[newLoc.y][newLoc.x]
-                Node(newLoc, it.first, it.second,
-                    newScore, newLoc.distanceTo(Point(width - 1, height - 1)) + newScore)
+                Crucible(newLoc, it.first, it.second, newScore, newLoc.distanceTo(Point(width - 1, height - 1)) + newScore)
             }
     }
 
-    private fun validDirections(from: Node): List<Pair<Direction, Int>> {
+    private fun validDirections(from: Crucible): List<Pair<Direction, Int>> {
         if (from.consecutive < 4) return listOf(from.direction to from.consecutive + 1)
         return when (from.direction) {
             NORTH -> listOf(NORTH to from.consecutive + 1, EAST to 1, WEST to 1)
@@ -71,21 +58,19 @@ object Part2a {
         }
     }
 
-    data class Node(val location: Point, val direction: Direction, val consecutive: Int, val score: Int, val distanceToExit: Int): Comparable<Node> {
-        override fun compareTo(other: Node): Int {
-            return (score + distanceToExit).compareTo(other.score + other.distanceToExit)
-        }
+    data class Crucible(val location: Point, val direction: Direction, val consecutive: Int, val score: Int, val distanceToExit: Int): Comparable<Crucible> {
+        override fun compareTo(other: Crucible): Int = (score + distanceToExit).compareTo(other.score + other.distanceToExit)
+
+        fun identity(): Identity = Identity(location, direction, consecutive)
     }
 
     data class Point(val x: Int, val y: Int) {
-        fun add(direction: Direction): Point {
-            return Point(x + direction.x, y + direction.y)
-        }
+        fun add(direction: Direction): Point = Point(x + direction.x, y + direction.y)
 
-        fun distanceTo(other: Point): Int {
-            return abs(x - other.x) + abs(y - other.y)
-        }
+        fun distanceTo(other: Point): Int = abs(x - other.x) + abs(y - other.y)
     }
+
+    data class Identity(val position: Point, val direction: Direction, val consecutive: Int)
 
     enum class Direction(val x: Int, val y: Int) {
         NORTH(0, -1), EAST(1, 0), SOUTH(0, 1), WEST(-1, 0)
