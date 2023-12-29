@@ -25,16 +25,16 @@ object Part2a {
         while (crucibles.first().location != exit || crucibles.first().consecutive < 4) {
             val nextPath = crucibles.remove()
 
-            if (!visited.contains(nextPath.identity())) {
-                visited.add(nextPath.identity())
-                crucibles.addAll(nextPoints(nextPath, width, height, inputInts))
+            if (!visited.contains(nextPath.identity)) {
+                visited.add(nextPath.identity)
+                crucibles.addAll(nextPoints(nextPath, width, height, inputInts, exit))
             }
         }
 
         return crucibles.first().score
     }
 
-    private fun nextPoints(from: Crucible, width: Int, height: Int, input: List<List<Int>>): List<Crucible> {
+    private fun nextPoints(from: Crucible, width: Int, height: Int, input: List<List<Int>>, exit: Point): List<Crucible> {
         return validDirections(from)
             .filter {
                 val newLoc = from.location.add(it.first)
@@ -42,7 +42,7 @@ object Part2a {
             }.map {
                 val newLoc = from.location.add(it.first)
                 val newScore = from.score + input[newLoc.y][newLoc.x]
-                Crucible(newLoc, it.first, it.second, newScore, newLoc.distanceTo(Point(width - 1, height - 1)) + newScore)
+                Crucible(newLoc, it.first, it.second, newScore, newLoc.distanceTo(exit) + newScore)
             }
     }
 
@@ -61,7 +61,7 @@ object Part2a {
     data class Crucible(val location: Point, val direction: Direction, val consecutive: Int, val score: Int, val distanceToExit: Int): Comparable<Crucible> {
         override fun compareTo(other: Crucible): Int = (score + distanceToExit).compareTo(other.score + other.distanceToExit)
 
-        fun identity(): Identity = Identity(location, direction, consecutive)
+        val identity: Identity = Identity(location, direction, consecutive)
     }
 
     data class Point(val x: Int, val y: Int) {
