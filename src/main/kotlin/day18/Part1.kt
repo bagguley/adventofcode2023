@@ -2,7 +2,7 @@ package day18
 
 fun main() {
     println(Part1.calc(testData))
-    //println(Part1.calc(data))
+    println(Part1.calc(data))
 }
 
 object Part1 {
@@ -31,71 +31,76 @@ object Part1 {
 
         for (yGroup in yGroups) {
             var inside = false
+            var offEdge = false
             val xSorted = yGroup.value.sortedBy { it.position.x }
-            var previousEdge: Edge? = null
-            var previousShape: Shape = Shape.NONE
-            for (x in xSorted) {
-                val shape = x.shape()
+            var insideStart: Edge? = null
+            for (currentEdge in xSorted) {
+                val shape = currentEdge.shape()
 
-                if (previousShape == Shape.NONE) {
-                    if (shape == Shape.VERTICAL || shape == Shape.BOTTOM_LEFT || shape == Shape.TOP_LEFT) {
-                        inside = true
-                        count ++
-                    }
-                } else if (previousShape == Shape.VERTICAL) {
-                    if (shape == Shape.VERTICAL || shape == Shape.BOTTOM_LEFT || shape == Shape.TOP_LEFT) {
-                        inside = inside.not()
-                        if (inside) {
-                            count ++
-                        } else {
-                            count += x.position.x - previousEdge!!.position.x
+                if (!inside) {
+                    when (shape) {
+                        Shape.VERTICAL -> {
+                            inside = true
+                            offEdge = true
+                            count++
+                            insideStart = currentEdge
                         }
-                    }
-                } else if (previousShape == Shape.BOTTOM_LEFT) {
-                    if (shape == Shape.BOTTOM_RIGHT) {
-                        inside = inside.not()
-                        if (inside) {
-                            count ++
-                        } else {
-                            count += x.position.x - previousEdge!!.position.x
+                        Shape.BOTTOM_LEFT -> {
+                            inside = true
+                            offEdge = false
+                            count++
+                            insideStart = currentEdge
                         }
-                    }
-                } else if (previousShape == Shape.TOP_LEFT) {
-                    if (shape == Shape.TOP_RIGHT) {
-                        inside = inside.not()
-                        if (inside) {
-                            count ++
-                        } else {
-                            count += x.position.x - previousEdge!!.position.x
+                        Shape.TOP_LEFT -> {
+                            inside = true
+                            offEdge = false
+                            count++
+                            insideStart = currentEdge
                         }
+                        else -> throw IllegalStateException("Bad start edge")
                     }
-                } else if (previousShape == Shape.TOP_RIGHT) {
-                    if (shape == Shape.VERTICAL || shape == Shape.TOP_LEFT || shape == Shape.BOTTOM_LEFT) {
-                        inside = inside.not()
-                        if (inside) {
-                            count ++
-                        } else {
-                            count += x.position.x - previousEdge!!.position.x
+                } else {
+                    if (offEdge) {
+                        when (shape) {
+                            Shape.VERTICAL, Shape.TOP_RIGHT, Shape.BOTTOM_RIGHT -> {
+                                inside = false
+                                offEdge = false
+                                count += currentEdge.position.x - insideStart!!.position.x
+                            }
+                            else -> {} // Do nothing
                         }
-                    }
-                } else if (previousShape == Shape.BOTTOM_RIGHT) {
-                    if (shape == Shape.VERTICAL || shape == Shape.TOP_LEFT || shape == Shape.BOTTOM_LEFT) {
-                        inside = inside.not()
-                        if (inside) {
-                            count ++
-                        } else {
-                            count += x.position.x - previousEdge!!.position.x
+                    } else {
+                        if (insideStart!!.shape() == Shape.BOTTOM_LEFT)
+                        {
+                            when (shape) {
+                                Shape.TOP_RIGHT -> {
+                                    offEdge = true
+                                }
+                                Shape.BOTTOM_RIGHT -> {
+                                    inside = false
+                                    count += currentEdge.position.x - insideStart.position.x
+                                }
+                                Shape.HORIZONTAL -> {} // DO nothing
+                                else -> throw IllegalStateException("Bad off edge for bottom-left ${shape.character}")
+                            }
+                        } else if (insideStart.shape() == Shape.TOP_LEFT) {
+                            when (shape) {
+                                Shape.BOTTOM_RIGHT -> {
+                                    offEdge = true
+                                }
+                                Shape.TOP_RIGHT -> {
+                                    inside = false
+                                    count += currentEdge.position.x - insideStart.position.x
+                                }
+                                Shape.HORIZONTAL -> {} // Do nothing
+                                else -> throw IllegalStateException("Bad off edge for top-left ${shape.character}")
+                            }
                         }
                     }
                 }
 
-                if (shape != Shape.HORIZONTAL) {
-                    previousShape = shape
-                    previousEdge = x
-                }
-
-                //if (inside) print("I") else print("O")
-                print(shape.character)
+                if (inside) print("I") else print("O")
+                //print(shape.character)
             }
             println(" $count")
         }
