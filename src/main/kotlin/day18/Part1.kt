@@ -142,11 +142,7 @@ object Part1 {
                         }
                     }
                 }
-
-                if (inside) print("I") else print("O")
-                //print(shape.character)
             }
-            println(" $count")
         }
 
         return count
