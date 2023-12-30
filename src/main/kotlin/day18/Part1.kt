@@ -32,6 +32,8 @@ object Part1 {
         for (yGroup in yGroups) {
             var inside = false
             var offEdge = false
+            var insideEdge = false
+            var insideEdgeStart: Edge? = null
             val xSorted = yGroup.value.sortedBy { it.position.x }
             var insideStart: Edge? = null
             for (currentEdge in xSorted) {
@@ -61,13 +63,55 @@ object Part1 {
                     }
                 } else {
                     if (offEdge) {
-                        when (shape) {
-                            Shape.VERTICAL, Shape.TOP_RIGHT, Shape.BOTTOM_RIGHT -> {
-                                inside = false
-                                offEdge = false
-                                count += currentEdge.position.x - insideStart!!.position.x
+                        if (!insideEdge) {
+                            when (shape) {
+                                Shape.VERTICAL, Shape.TOP_RIGHT, Shape.BOTTOM_RIGHT -> {
+                                    inside = false
+                                    offEdge = false
+                                    count += currentEdge.position.x - insideStart!!.position.x
+                                }
+
+                                Shape.BOTTOM_LEFT, Shape.TOP_LEFT -> {
+                                    insideEdge = true
+                                    insideEdgeStart = currentEdge
+                                }
+
+                                else -> {} // Do nothing
                             }
-                            else -> {} // Do nothing
+                        } else {
+                            if (insideEdgeStart!!.shape() == Shape.BOTTOM_LEFT) {
+                                when (shape) {
+                                    Shape.BOTTOM_RIGHT -> {
+                                        insideEdgeStart = null
+                                        insideEdge = false
+                                    }
+                                    Shape.TOP_RIGHT -> {
+                                        inside = false
+                                        offEdge = false
+                                        insideEdgeStart = null
+                                        insideEdge = false
+                                        count += currentEdge.position.x - insideStart!!.position.x
+                                    }
+                                    Shape.HORIZONTAL -> {} // Do nothing
+                                    else -> throw IllegalStateException("Bad inside edge shape ${shape.character}")
+                                }
+                            } else if (insideEdgeStart.shape() == Shape.TOP_LEFT) {
+                                when (shape) {
+                                    Shape.BOTTOM_RIGHT -> {
+                                        inside = false
+                                        offEdge = false
+                                        insideEdgeStart = null
+                                        insideEdge = false
+                                        count += currentEdge.position.x - insideStart!!.position.x
+                                    }
+                                    Shape.TOP_RIGHT -> {
+                                        insideEdgeStart = null
+                                        insideEdge = false
+                                    }
+                                    Shape.HORIZONTAL -> {} // Do nothing
+                                    else -> throw IllegalStateException("Bad inside edge shape ${shape.character}")
+                                }
+                            }
                         }
                     } else {
                         if (insideStart!!.shape() == Shape.BOTTOM_LEFT)
@@ -181,6 +225,6 @@ object Part1 {
     }
 
     enum class Shape(val character: Char) {
-        NONE('O'), HORIZONTAL('-'), VERTICAL('|'), TOP_LEFT('F'), TOP_RIGHT('7'), BOTTOM_RIGHT('J'), BOTTOM_LEFT('L')
+        HORIZONTAL('-'), VERTICAL('|'), TOP_LEFT('F'), TOP_RIGHT('7'), BOTTOM_RIGHT('J'), BOTTOM_LEFT('L')
     }
 }
