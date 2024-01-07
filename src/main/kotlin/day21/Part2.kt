@@ -15,6 +15,9 @@ fun main() {
 object Part2 {
     fun calc(input: List<String>): Int {
         val steps = 26501365L
+        val extraSteps = 65
+        //val extraSteps = 1
+        //val steps = 6L
         val size = input[0].length
 
         val odd = calc(input, size)
@@ -31,18 +34,36 @@ object Part2 {
         val numOfSquares = (sumToOne * 4) + 1L
         println("Square Count: $numOfSquares")
 
-        val oddCountSW = countSouthWest(odd, size, 65)
-        val oddCountSE = countSouthEast(odd, size, 65)
-        val oddCountNE = countNorthEast(odd, size, 65)
-        val oddCountNW = countNorthWest(odd, size, 65)
+        val oddCountSW = countSouthWest(odd, size, extraSteps)
+        val oddCountSE = countSouthEast(odd, size, extraSteps)
+        val oddCountNE = countNorthEast(odd, size, extraSteps)
+        val oddCountNW = countNorthWest(odd, size, extraSteps)
+
+        println("Odd SW: $oddCountSW")
+        println("Odd SE: $oddCountSE")
+        println("Odd NE: $oddCountNE")
+        println("Odd NW: $oddCountNW")
 
         val numOfHalfSquaresOnEachSide = (squaresWide - 1L) / 2L
         val sumOfHalfSquares = numOfHalfSquaresOnEachSide * (oddCountSW + oddCountSE + oddCountNE + oddCountNW)
-        val sumOfPoints = countSouthPoint(odd, size, 65) + countNorthPoint(odd, size, 65) +
-                countEastPoint(odd, size, 65) + countWestPoint(odd, size, 65)
+        val sumOfPoints = countSouthPoint(odd, size, extraSteps) + countNorthPoint(odd, size, extraSteps) +
+                countEastPoint(odd, size, extraSteps) + countWestPoint(odd, size, extraSteps)
 
-        val numOfOdd = ((squaresWide + 1L) / 2) * ((squaresWide + 1L) / 2)
-        val numOfEven = ((squaresWide - 1L) / 2) * ((squaresWide - 1L) / 2)
+        val evenCountSW = countSouthWest(even, size, -extraSteps)
+        val evenCountSE = countSouthEast(even, size, size + extraSteps)
+        val evenCountNE = countNorthEast(even, size, size + extraSteps)
+        val evenCountNW = countNorthWest(even, size, -extraSteps)
+
+        println("Even SW: $evenCountSW")
+        println("Even SE: $evenCountSE")
+        println("Even NE: $evenCountNE")
+        println("Even NW: $evenCountNW")
+
+        val numOfRemainingEvenPartialSquares = numOfHalfSquaresOnEachSide + 1
+        val sumOfRemainingEvenPartialSquares = numOfRemainingEvenPartialSquares * (evenCountSW + evenCountSE + evenCountNE + evenCountNW)
+
+        val numOfOdd = ((squaresWide - 1L) / 2) * ((squaresWide - 1L) / 2)
+        val numOfEven = ((squaresWide + 1L) / 2) * ((squaresWide + 1L) / 2)
         val numOfPositions = numOfOdd * oddCount + numOfEven * evenCount
 
         println("Squares Wide: $squaresWide")
@@ -51,7 +72,7 @@ object Part2 {
         println("Num of halfSquares: $numOfHalfSquaresOnEachSide")
         println("Num of points: $sumOfPoints")
 
-        println("Num of position: ${numOfPositions + sumOfHalfSquares + sumOfPoints}") // 608146800801836 too low
+        println("Num of position: ${numOfPositions + sumOfHalfSquares + sumOfPoints + sumOfRemainingEvenPartialSquares}") // 608146800801836 too low
 
 
 
