@@ -16,22 +16,21 @@ object Part2 {
         val nodeMap = createNodeMap(trail)
         val result = mutableListOf<Int>()
         val queue = PriorityQueue<Path>()
-        queue.add(Path(emptySet(), trail.start, 0))
+        queue.add(Path(emptySet(), nodeMap[trail.start]!!, 0))
 
         while(queue.isNotEmpty()) {
             val nextPath = queue.remove()
-            if (nextPath.position == trail.end) {
-                println(nextPath.cost)
+            if (nextPath.current.position == trail.end) {
                 result.add(nextPath.cost)
                 continue
             }
 
-            val node = nodeMap[nextPath.position]!!
+            val node = nextPath.current
 
             val nextConnections = node.connections.filter { !nextPath.visited.contains(it.node) }
 
             for (nextConnection in nextConnections) {
-                queue.add(Path(nextPath.visited + nextConnection.node, nextConnection.node.position, nextPath.cost + nextConnection.cost))
+                queue.add(Path(nextPath.visited + nextConnection.node, nextConnection.node, nextPath.cost + nextConnection.cost))
             }
         }
 
@@ -76,19 +75,20 @@ object Part2 {
                 continue
             }
 
+            val newNode = Node(next.position)
+            nodeMap[next.position] = newNode
+
             for (nextPosition in nextPositions) {
-                val newNode = Node(nextPosition.first)
-                nodeMap[nextPosition.first] = newNode
                 newNode.addConnection(next.previous, next.recentCost)
                 next.previous.addConnection(newNode, next.recentCost)
-                queue.add(Step(newNode, nextPosition.first, nextPosition.second, next.totalCost + 1, 0))
+                queue.add(Step(newNode, nextPosition.first, nextPosition.second, next.totalCost + 1, 1))
             }
         }
 
         return nodeMap
     }
 
-    class Trail(private val trail: Map<Point, Char>, val width: Int, val height: Int) {
+    class Trail(val trail: Map<Point, Char>, val width: Int, val height: Int) {
         val start = Point(1, 0)
         val end = Point(width - 2, height - 1)
 
@@ -129,9 +129,9 @@ object Part2 {
         }
     }
 
-    data class Path(val visited: Set<Node>, val position: Point, val cost: Int): Comparable<Path> {
+    data class Path(val visited: Set<Node>, val current: Node, val cost: Int): Comparable<Path> {
         override fun compareTo(other: Path): Int {
-            return cost.compareTo(other.cost)
+            return -1 * (cost.compareTo(other.cost))
         }
     }
 
