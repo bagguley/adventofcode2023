@@ -14,12 +14,28 @@ object Part2 {
         val trail = Trail(map, input[0].length, input.size)
 
         val nodeMap = createNodeMap(trail)
+        val result = mutableListOf<Int>()
+        val queue = PriorityQueue<Path>()
+        queue.add(Path(emptySet(), trail.start, 0))
 
-        println("Graph built")
+        while(queue.isNotEmpty()) {
+            val nextPath = queue.remove()
+            if (nextPath.position == trail.end) {
+                println(nextPath.cost)
+                result.add(nextPath.cost)
+                continue
+            }
 
+            val node = nodeMap[nextPath.position]!!
 
+            val nextConnections = node.connections.filter { !nextPath.visited.contains(it.node) }
 
-        return -1
+            for (nextConnection in nextConnections) {
+                queue.add(Path(nextPath.visited + nextConnection.node, nextConnection.node.position, nextPath.cost + nextConnection.cost))
+            }
+        }
+
+        return result.maxOf { it }
     }
 
     fun load(input: List<String>): Map<Point, Char> {
@@ -28,15 +44,18 @@ object Part2 {
         }.associate { it }
     }
 
-    private fun createNodeMap(trail: Trail) {
+    private fun createNodeMap(trail: Trail): Map<Point, Node> {
         val nodeMap = mutableMapOf<Point, Node>()
         val visited = mutableSetOf<Point>()
         val queue = PriorityQueue<Step>()
         val firstNode = Node(trail.start)
+        val endNode = Node(trail.end)
+        visited.add(trail.end)
 
         nodeMap[trail.start] = firstNode
+        nodeMap[trail.end] = endNode
 
-        queue.add(Step(firstNode, trail.start, 0, 0))
+        queue.add(Step(firstNode, trail.start, Direction.SOUTH, 0, 0))
 
         while (queue.isNotEmpty()) {
             val next = queue.remove()
@@ -50,31 +69,35 @@ object Part2 {
 
             visited.add(next.position)
 
-            val nextPositions = trail.next(next.position).filter{!visited.contains(it)}
+            val nextPositions = trail.next(next.position, next.lastDirection)
             if (nextPositions.isEmpty()) continue
             if (nextPositions.size == 1) {
-                queue.add(Step(next.previous, nextPositions[0], next.totalCost + 1, next.recentCost + 1))
+                queue.add(Step(next.previous, nextPositions[0].first, nextPositions[0].second, next.totalCost + 1, next.recentCost + 1))
                 continue
             }
 
             for (nextPosition in nextPositions) {
-                val newNode = Node(nextPosition)
-                nodeMap[nextPosition] = newNode
+                val newNode = Node(nextPosition.first)
+                nodeMap[nextPosition.first] = newNode
                 newNode.addConnection(next.previous, next.recentCost)
                 next.previous.addConnection(newNode, next.recentCost)
-                queue.add(Step(newNode, nextPosition, next.totalCost + 1, 0))
+                queue.add(Step(newNode, nextPosition.first, nextPosition.second, next.totalCost + 1, 0))
             }
         }
+
+        return nodeMap
     }
 
     class Trail(private val trail: Map<Point, Char>, val width: Int, val height: Int) {
         val start = Point(1, 0)
         val end = Point(width - 2, height - 1)
 
-        fun next(from: Point): List<Point> {
-            return Direction.entries.map { from.add(it) }
-                .filter { notWall(it) }
-                .filter { inBounds(it) }
+        fun next(from: Point, direction: Direction): List<Pair<Point, Direction>> {
+            return Direction.entries
+                .filter { it.opposite() != direction}
+                .map { from.add(it) to it }
+                .filter { notWall(it.first) }
+                .filter { inBounds(it.first) }
         }
 
         private fun notWall(point: Point): Boolean {
@@ -106,9 +129,15 @@ object Part2 {
         }
     }
 
+    data class Path(val visited: Set<Node>, val position: Point, val cost: Int): Comparable<Path> {
+        override fun compareTo(other: Path): Int {
+            return cost.compareTo(other.cost)
+        }
+    }
+
     data class Connection(val node: Node, val cost: Int)
 
-    data class Step(val previous: Node, val position: Point, val totalCost: Int, val recentCost: Int): Comparable<Step> {
+    data class Step(val previous: Node, val position: Point, val lastDirection: Direction, val totalCost: Int, val recentCost: Int): Comparable<Step> {
         override fun compareTo(other: Step): Int {
             return totalCost.compareTo(other.totalCost)
         }
@@ -121,6 +150,15 @@ object Part2 {
     }
 
     enum class Direction(val x: Int, val y:Int) {
-        NORTH(0, -1), SOUTH(0, 1), EAST(1, 0), WEST(-1, 0)
+        NORTH(0, -1), SOUTH(0, 1), EAST(1, 0), WEST(-1, 0);
+
+        fun opposite(): Direction {
+            return when (this) {
+                NORTH -> SOUTH
+                EAST -> WEST
+                SOUTH -> NORTH
+                WEST -> EAST
+            }
+        }
     }
 }
